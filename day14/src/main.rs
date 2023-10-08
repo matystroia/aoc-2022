@@ -51,7 +51,7 @@ fn get_line(a: (usize, usize), b: (usize, usize)) -> Vec<(usize, usize)> {
     }
 }
 
-fn _print_map(map: &[[bool; M]]) {
+fn _print_map(map: &[[bool; M]]) {q
     for row in map.iter().take(15) {
         println!(
             "{}",
