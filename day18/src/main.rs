@@ -1,3 +1,4 @@
+use itertools::iproduct;
 use std::collections::HashSet;
 
 fn main() {
@@ -18,20 +19,9 @@ fn main() {
 
     let mut ans = 0;
     for cube in cubes {
-        for dx in -1..=1_i32 {
-            for dy in -1..=1_i32 {
-                for dz in -1..=1_i32 {
-                    let ds = dx.abs() + dy.abs() + dz.abs();
-                    if ds == 0 || ds > 1 {
-                        continue;
-                    }
-
-                    let (x, y, z) = (cube.0 as i32 + dx, cube.1 as i32 + dy, cube.2 as i32 + dz);
-
-                    if (x < 0 || y < 0 || z < 0) || !map[x as usize][y as usize][z as usize] {
-                        ans += 1;
-                    }
-                }
+        for (x, y, z) in get_neighbors(&cube) {
+            if (x < 0 || y < 0 || z < 0) || !map[x as usize][y as usize][z as usize] {
+                ans += 1;
             }
         }
     }
@@ -48,6 +38,17 @@ struct Ret {
     count: usize,
 }
 
+fn get_neighbors(pos: &(usize, usize, usize)) -> Vec<(i32, i32, i32)> {
+    iproduct!(-1..=1_i32, -1..=1_i32, -1..=1_i32)
+        .filter_map(|(dx, dy, dz)| {
+            if dx.abs() + dy.abs() + dz.abs() == 1 {
+                return Some((pos.0 as i32 + dx, pos.1 as i32 + dy, pos.2 as i32 + dz));
+            }
+            None
+        })
+        .collect()
+}
+
 fn fill(
     positions: Vec<&(usize, usize, usize)>,
     map: [[[bool; 25]; 25]; 25],
@@ -62,28 +63,18 @@ fn fill(
     let mut next_pos = HashSet::new();
 
     for pos in positions.iter() {
-        for dx in -1..=1_i32 {
-            for dy in -1..=1_i32 {
-                for dz in -1..=1_i32 {
-                    let ds = dx.abs() + dy.abs() + dz.abs();
-                    if ds == 0 || ds > 1 {
-                        continue;
-                    }
+        for (x, y, z) in get_neighbors(pos) {
+            if !(0..25).contains(&x) || !(0..25).contains(&y) || !(0..25).contains(&z) {
+                continue;
+            }
 
-                    let (x, y, z) = (pos.0 as i32 + dx, pos.1 as i32 + dy, pos.2 as i32 + dz);
-                    if !(0..25).contains(&x) || !(0..25).contains(&y) || !(0..25).contains(&z) {
-                        continue;
-                    }
+            if map[x as usize][y as usize][z as usize] {
+                ret.count += 1;
+                continue;
+            }
 
-                    if map[x as usize][y as usize][z as usize] {
-                        ret.count += 1;
-                        continue;
-                    }
-
-                    if !visited.contains(&(x as usize, y as usize, z as usize)) {
-                        next_pos.insert((x as usize, y as usize, z as usize));
-                    }
-                }
+            if !visited.contains(&(x as usize, y as usize, z as usize)) {
+                next_pos.insert((x as usize, y as usize, z as usize));
             }
         }
     }
